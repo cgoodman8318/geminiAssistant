@@ -1,0 +1,29 @@
+{
+  "name": "jw-automation-tools",
+  "dependencies": {
+    "@google/genai": "^1.46.0",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^25.5.0",
+    "@types/yargs": "^17.0.35",
+    "axios": "^1.14.0",
+    "fs-extra": "^11.3.4",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "yargs": "^18.0.0"
+  },
+  "scripts": {
+    "install-tools": "npm install -g .",
+    "install-skills": "gemini skills install src/skills/jw-assistant-toolkit src/skills/interactive-web-explorer"
+  },
+  "bin": {
+    "kokoro-tts": "./src/tools/kokoro_tool.ts",
+    "jw-scraper-daily": "./src/tools/jw_scraper_daily_text_tool.ts",
+    "jw-daily-orchestrator": "./src/tools/jw_daily_orchestrator.ts",
+    "wol-research": "./src/tools/interactive_wol_research.ts",
+    "browser-engine": "./src/tools/browser_engine.ts"
+  }
+}

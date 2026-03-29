@@ -20,7 +20,7 @@
   },
   "scripts": {
     "install-tools": "npm install -g .",
-    "install-skills": "gemini skills install src/skills/jw-assistant-toolkit --consent && gemini skills install src/skills/interactive-web-explorer --consent && gemini skills install src/skills/coding-step-planner --consent && gemini skills install src/skills/autonomous-researcher --consent"
+    "install-skills": "gemini skills install src/skills/jw-assistant-toolkit --consent && gemini skills install src/skills/interactive-web-explorer --consent && gemini skills install src/skills/coding-step-planner --consent && gemini skills install src/skills/autonomous-researcher --consent && gemini skills install src/skills/skill-auditor --consent"
   },
   "bin": {
     "kokoro-tts": "./src/tools/kokoro_tool.ts",
@@ -28,6 +28,7 @@
     "jw-daily-orchestrator": "./src/tools/jw_daily_orchestrator.ts",
     "wol-research": "./src/tools/interactive_wol_research.ts",
     "browser-engine": "./src/tools/browser_engine.ts",
-    "autonomous-researcher": "./src/tools/autonomous-researcher/index.ts"
+    "autonomous-researcher": "./src/tools/autonomous-researcher/index.ts",
+    "skill-auditor": "./src/tools/skill-auditor/index.ts"
   }
 }

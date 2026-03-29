@@ -1,0 +1,129 @@
+{
+  "timestamp": "2026-03-29T11:44:09.505Z",
+  "count": 11,
+  "components": [
+    {
+      "id": "01KMWPH68W34WZ1PHJQV8FFC97",
+      "type": "skill",
+      "name": "autonomous-researcher",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\autonomous-researcher",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false,
+        "description": ">"
+      }
+    },
+    {
+      "id": "01KMWPH68XY1BZKK5B3952EH2C",
+      "type": "skill",
+      "name": "coding-step-planner",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\coding-step-planner",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false,
+        "description": ">"
+      }
+    },
+    {
+      "id": "01KMWPH68X4G5EZWVKB5M2SVR1",
+      "type": "skill",
+      "name": "interactive-web-explorer",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\interactive-web-explorer",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false,
+        "description": "Provides a stateful, interactive way to explore and navigate websites using Playwright. Use when you need to interact with a UI, navigate complex flows, or perform multi-step actions on a website."
+      }
+    },
+    {
+      "id": "01KMWPH68YKKG8DHC4F0CMVFR1",
+      "type": "skill",
+      "name": "jw-assistant-toolkit",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\jw-assistant-toolkit",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false,
+        "description": "A comprehensive toolkit for automating JW.org content research, script generation, and family-style multi-voice podcast synthesis using Kokoro TTS."
+      }
+    },
+    {
+      "id": "01KMWPH68YQK8FKPRME21GPM40",
+      "type": "skill",
+      "name": "skill-auditor",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\skill-auditor",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": true,
+        "description": ">"
+      }
+    },
+    {
+      "id": "01KMWPH68Y4JR01GY5KK35ZBQQ",
+      "type": "tool",
+      "name": "autonomous-researcher",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\autonomous-researcher",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false,
+        "version": "1.0.0",
+        "dependencies": [
+          "@google/generative-ai",
+          "dotenv",
+          "ulid",
+          "yargs",
+          "zod"
+        ]
+      }
+    },
+    {
+      "id": "01KMWPH68ZQE7RRFK6KQBZ0GHA",
+      "type": "utility",
+      "name": "browser_engine.ts",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\browser_engine.ts",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false
+      }
+    },
+    {
+      "id": "01KMWPH690TNAD5PS72MGVS3BR",
+      "type": "utility",
+      "name": "interactive_wol_research.ts",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\interactive_wol_research.ts",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false
+      }
+    },
+    {
+      "id": "01KMWPH690RW8ED4C8HGQW530Q",
+      "type": "utility",
+      "name": "jw_daily_orchestrator.ts",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\jw_daily_orchestrator.ts",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false
+      }
+    },
+    {
+      "id": "01KMWPH690S15R4EANCCBPKN7X",
+      "type": "utility",
+      "name": "jw_scraper_daily_text_tool.ts",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\jw_scraper_daily_text_tool.ts",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false
+      }
+    },
+    {
+      "id": "01KMWPH690NSQYFZ62NWRTH2BQ",
+      "type": "utility",
+      "name": "kokoro_tool.ts",
+      "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\kokoro_tool.ts",
+      "metadata": {
+        "isSourceOfTruth": true,
+        "hasYolo": false
+      }
+    }
+  ]
+}

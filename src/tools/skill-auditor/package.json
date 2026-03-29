@@ -1,0 +1,11 @@
+{
+  "name": "skill-auditor",
+  "version": "1.0.0",
+  "description": "Inventory and integrity scanner for the JW Assistant project",
+  "main": "index.ts",
+  "type": "module",
+  "dependencies": {
+    "yargs": "^17.7.2",
+    "ulid": "^2.3.0"
+  }
+}

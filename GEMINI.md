@@ -33,3 +33,9 @@ Specialized tools built on Core foundations for JW-specific workflows.
 - **Julia Hooks:** For `gemini-cli` hooks (e.g., `snapshotBuilder.jl`), always write the logic to a `.jl` file and execute it rather than using inline `julia -e` commands to avoid complex shell escaping issues in PowerShell/Windows. Use **JSON3** for all JSON processing.
 - **Pathing:** Uses dynamic path discovery to support global installation and sandboxed secrets.
 - **Security:** Follow the **Agent Ground Rules** in the root `GEMINI.md`.
+
+## Diagnostic Mode Procedures
+If the agent receives a payload containing the `[DIAGNOSTIC MODE ACTIVE]` flag (injected by the `forensicLookup.jl` hook upon tool failure), it MUST strictly adhere to the following sequence:
+1. **Identify Root Cause:** Analyze the injected stack frames.
+2. **Determine Causality:** Explicitly state whether the error originates from User Code calling a dependency incorrectly, or from an internal Dependency/Stdlib conflict.
+3. **Suggest Fix:** *Only* suggest a fix after confirming the root cause. The agent MUST NOT hallucinate broad architectural changes or unrelated refactoring to resolve simple version, type, or syntax mismatches highlighted by the diagnostic payload.

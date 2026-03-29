@@ -46,6 +46,8 @@ Use `--yolo` flag to suppress interactive prompts if running non-interactively.
 ### Pass 1 — Context Load & Ambiguity Surfacing
 **Goal:** Give Gemini the full context and have it identify everything that's unclear, underspecified, or undocumented about the step before any planning begins.
 
+**Research Integration:** If any "Documentation Gaps" are identified (e.g., niche library syntax, hardware registers, specific API versions), do not guess. Use the `autonomous-researcher` tool to perform a deep-dive investigation into those specific gaps before proceeding to Pass 2.
+
 Prompt template:
 ```markdown
 gemini -p "
@@ -76,16 +78,16 @@ Categories to cover:
 - Ambiguities — things stated but not fully defined
 - Assumptions — things implied but not stated
 - Interface questions — inputs/outputs/contracts with adjacent steps
-- Documentation Gaps — explicitly list any specific language features, hardware interfaces, or third-party libraries where you lack complete, up-to-date syntax knowledge and require the user to provide official documentation URLs or snippets.
+- Documentation Gaps — explicitly list any specific language features, hardware interfaces, or third-party libraries where you lack complete, up-to-date syntax knowledge. Note: These will be resolved using the `autonomous-researcher` tool.
 - Open decisions — things that must be chosen before the architecture can be designed
 
 Be exhaustive. A question left unasked here becomes a bug later.
 "
 ```
-**After this pass:** Gemini outputs a Markdown form (`pass1Form.md`). Fill in every `**Answer:**` field directly in that file. Provide URLs or pasted documentation for any flagged Documentation Gaps. Save the completed form; it feeds directly into Pass 2.
+**After this pass:** Gemini outputs a Markdown form (`pass1Form.md`). Fill in every `**Answer:**` field directly in that file. Provide URLs or pasted documentation for any flagged Documentation Gaps, or better yet, run the `autonomous-researcher` for those gaps and attach the findings to Pass 2. Save the completed form; it feeds directly into Pass 2.
 
 ### Pass 2 — Architecture & Logic Design
-**Goal:** Design the implementation: data structures, function signatures, control flow, integration points, and error handling strategy. The resolved constraints from Pass 1 are the ground truth.
+**Goal:** Design the implementation: data structures, function signatures, control flow, integration points, and error handling strategy. The resolved constraints from Pass 1 and any research reports from the `autonomous-researcher` are the ground truth.
 
 Prompt template:
 ```markdown
@@ -99,6 +101,9 @@ gemini -p "
 ### RESOLVED CONSTRAINTS (completed Pass 1 form)
 <pass1FormWithAnswers>
 
+### RESEARCH FINDINGS (from autonomous-researcher)
+<researcherReportContent>
+
 ### EXISTING CODE INTERFACES
 <relevantCodeSnippets>
 
@@ -107,12 +112,11 @@ gemini -p "
 Key conventions for this project: <projectConventions>
 
 ### DOCUMENTATION & GROUNDING
-If the tools are available to you, execute a web search to retrieve the official documentation for any niche language features or libraries required by this step. 
-If search is unavailable, you MUST strictly constrain your design to the syntax and idioms provided in the <pass1FormWithAnswers> and <relevantCodeSnippets>. Do not guess or invent standard library functions. If a required interface remains unknown, document it as an explicit blocker in the ## Open Items section.
+The `autonomous-researcher` has been used to resolve Documentation Gaps. You MUST strictly follow the syntax and idioms provided in the <researcherReportContent>, <pass1FormWithAnswers> and <relevantCodeSnippets>. Do not guess or invent standard library functions. If a required interface remains unknown, document it as an explicit blocker in the ## Open Items section.
 
 ### TASK
 You are a senior software architect. Design the full implementation plan for this step,
-strictly following the language idioms and conventions provided above.
+strictly following the language idioms, conventions, and research findings provided above.
 
 Begin your response with a ## TLDR section (5 lines max) summarizing:
 - What this step does

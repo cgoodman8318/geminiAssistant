@@ -114,4 +114,96 @@ export class HAClient {
             this.handleError(error, `callService(${call.domain}.${call.service})`);
         }
     }
+
+    /**
+     * Retrieves the service registry.
+     */
+    async getServices(): Promise<any> {
+        try {
+            const response = await this.client.get('/api/services');
+            return response.data;
+        } catch (error) {
+            this.handleError(error, 'getServices');
+        }
+    }
+
+    /**
+     * Lists all automations by filtering the state machine.
+     * This provides the internal 'id' needed for config operations.
+     */
+    async getAutomations(): Promise<any[]> {
+        try {
+            const states = await this.getStates();
+            return states
+                .filter(s => s.entity_id.startsWith('automation.'))
+                .map(s => ({
+                    entity_id: s.entity_id,
+                    state: s.state,
+                    friendly_name: s.attributes.friendly_name,
+                    id: s.attributes.id // This is the crucial ID for config endpoints
+                }));
+        } catch (error) {
+            this.handleError(error, 'getAutomations');
+        }
+    }
+
+    /**
+     * Retrieves the config for a specific automation.
+     */
+    async getAutomationConfig(automationId: string): Promise<any> {
+        try {
+            const response = await this.client.get(`/api/config/automation/config/${automationId}`);
+            return response.data;
+        } catch (error) {
+            this.handleError(error, `getAutomationConfig(${automationId})`);
+        }
+    }
+
+    /**
+     * Saves (creates or updates) an automation config.
+     */
+    async saveAutomation(automationId: string, config: any): Promise<any> {
+        try {
+            const response = await this.client.post(`/api/config/automation/config/${automationId}`, config);
+            return response.data;
+        } catch (error) {
+            this.handleError(error, `saveAutomation(${automationId})`);
+        }
+    }
+
+    /**
+     * Deletes an automation config.
+     */
+    async deleteAutomation(automationId: string): Promise<any> {
+        try {
+            const response = await this.client.delete(`/api/config/automation/config/${automationId}`);
+            return response.data;
+        } catch (error) {
+            this.handleError(error, `deleteAutomation(${automationId})`);
+        }
+    }
+
+    /**
+     * Lists all config entries (integrations).
+     */
+    async getConfigEntries(): Promise<any[]> {
+        try {
+            const response = await this.client.get('/api/config/config_entries/entry');
+            return response.data;
+        } catch (error) {
+            this.handleError(error, 'getConfigEntries');
+        }
+    }
+
+    /**
+     * Reloads a specific config entry.
+     */
+    async reloadConfigEntry(entryId: string): Promise<any> {
+        try {
+            const response = await this.client.post(`/api/config/config_entries/entry/${entryId}/reload`);
+            return response.data;
+        } catch (error) {
+            this.handleError(error, `reloadConfigEntry(${entryId})`);
+        }
+    }
 }

@@ -109,6 +109,66 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ['domain', 'service'],
       },
     },
+    {
+        name: 'list_ha_services',
+        description: 'Returns the full registry of available services in Home Assistant.',
+        inputSchema: { type: 'object', properties: {} }
+    },
+    {
+        name: 'list_ha_automations',
+        description: 'List all current automation configurations.',
+        inputSchema: { type: 'object', properties: {} }
+    },
+    {
+        name: 'get_ha_automation_config',
+        description: 'Get the full configuration for a specific automation.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                automation_id: { type: 'string', description: 'The unique ID of the automation' }
+            },
+            required: ['automation_id']
+        }
+    },
+    {
+        name: 'save_ha_automation',
+        description: 'Create or update an automation configuration.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                automation_id: { type: 'string', description: 'The unique ID to use for this automation' },
+                config: { type: 'object', description: 'The automation configuration object (trigger, condition, action)' }
+            },
+            required: ['automation_id', 'config']
+        }
+    },
+    {
+        name: 'delete_ha_automation',
+        description: 'Remove an automation configuration.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                automation_id: { type: 'string', description: 'The unique ID of the automation to delete' }
+            },
+            required: ['automation_id']
+        }
+    },
+    {
+        name: 'list_ha_config_entries',
+        description: 'List all installed integrations and their status.',
+        inputSchema: { type: 'object', properties: {} }
+    },
+    {
+        name: 'reload_ha_config_entry',
+        description: 'Force a specific integration to restart.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                entry_id: { type: 'string', description: 'The ID of the config entry to reload' }
+            },
+            required: ['entry_id']
+        }
+    }
   ],
 }));
 
@@ -149,6 +209,59 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const result = await ha.callService({ domain, service, entity_id, service_data });
         return {
           content: [{ type: 'text', text: `Service successfully called. Affected entities: ${result.length}` }],
+        };
+      }
+
+      case 'list_ha_services': {
+        const services = await ha.getServices();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(services, null, 2) }],
+        };
+      }
+
+      case 'list_ha_automations': {
+        const automations = await ha.getAutomations();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(automations, null, 2) }],
+        };
+      }
+
+      case 'get_ha_automation_config': {
+        const { automation_id } = args as { automation_id: string };
+        const config = await ha.getAutomationConfig(automation_id);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(config, null, 2) }],
+        };
+      }
+
+      case 'save_ha_automation': {
+        const { automation_id, config } = args as { automation_id: string, config: any };
+        const result = await ha.saveAutomation(automation_id, config);
+        return {
+          content: [{ type: 'text', text: `Automation saved successfully: ${JSON.stringify(result)}` }],
+        };
+      }
+
+      case 'delete_ha_automation': {
+        const { automation_id } = args as { automation_id: string };
+        const result = await ha.deleteAutomation(automation_id);
+        return {
+          content: [{ type: 'text', text: `Automation deleted successfully: ${JSON.stringify(result)}` }],
+        };
+      }
+
+      case 'list_ha_config_entries': {
+        const entries = await ha.getConfigEntries();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(entries, null, 2) }],
+        };
+      }
+
+      case 'reload_ha_config_entry': {
+        const { entry_id } = args as { entry_id: string };
+        const result = await ha.reloadConfigEntry(entry_id);
+        return {
+          content: [{ type: 'text', text: `Config entry reloaded successfully: ${JSON.stringify(result)}` }],
         };
       }
 

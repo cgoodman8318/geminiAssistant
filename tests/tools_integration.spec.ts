@@ -1,3 +1,4 @@
+import { test, expect } from '@playwright/test';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -13,7 +14,7 @@ const AUDIT_CACHE = path.join(ROOT_DIR, 'audit_cache');
 const RESEARCH_OUTPUTS = path.join(ROOT_DIR, 'research_outputs');
 const IS_CI = process.env.CI === 'true';
 
-describe('CLI Tools Integration', () => {
+test.describe('CLI Tools Integration', () => {
 
     test('Skill Auditor: Inventory & Analyze', () => {
         console.log('Testing Skill Auditor...');
@@ -21,17 +22,18 @@ describe('CLI Tools Integration', () => {
         // 1. Inventory
         const inventoryOut = execSync('npx tsx src/tools/core/skill-auditor/index.ts inventory', { encoding: 'utf8' });
         expect(inventoryOut).toContain('[Success] Manifest generated');
-        expect(fs.existsSync(path.join(AUDIT_CACHE, 'manifest.json'))).toBe(true);
+        expect(fs.existsSync(path.join(AUDIT_CACHE, 'manifest.json'))).toBeTruthy();
 
         // 2. Analyze
         const analyzeOut = execSync('npx tsx src/tools/core/skill-auditor/index.ts analyze', { encoding: 'utf8' });
         expect(analyzeOut).toContain('[Success] Security Scorecard generated');
-        expect(fs.existsSync(path.join(AUDIT_CACHE, 'security_scorecard.json'))).toBe(true);
+        expect(fs.existsSync(path.join(AUDIT_CACHE, 'security_scorecard.json'))).toBeTruthy();
     });
 
     test('Autonomous Researcher: Minimal Run', () => {
         if (IS_CI && !process.env.GEMINI_API_KEY) {
             console.log('Skipping Autonomous Researcher test in CI without API key.');
+            test.skip();
             return;
         }
 
@@ -60,28 +62,3 @@ describe('CLI Tools Integration', () => {
     });
 
 });
-
-function describe(name: string, fn: () => void) {
-    console.log(`\n--- Starting Suite: ${name} ---`);
-    fn();
-}
-
-function test(name: string, fn: () => void) {
-    try {
-        fn();
-        console.log(`✅ PASSED: ${name}`);
-    } catch (e: any) {
-        console.error(`❌ FAILED: ${name}`);
-        console.error(e.message);
-        // Only fail the process if we are in CI
-        if (IS_CI) process.exit(1);
-    }
-}
-
-function expect(val: any) {
-    return {
-        toBe: (expected: any) => { if (val !== expected) throw new Error(`Expected ${expected} but got ${val}`); },
-        toContain: (expected: string) => { if (!val.includes(expected)) throw new Error(`Expected string to contain "${expected}"`); },
-        toBeGreaterThanOrEqual: (expected: number) => { if (val < expected) throw new Error(`Expected ${val} to be >= ${expected}`); }
-    };
-}

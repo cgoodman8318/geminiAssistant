@@ -10,8 +10,22 @@ import { analyzeComponent } from './scanner.js';
  * Part of the "Source of Truth" self-correction suite.
  */
 
-const ROOT_SRC = path.resolve(process.cwd(), 'src');
-const OUTPUT_DIR = path.resolve(process.cwd(), 'audit_cache');
+const ROOT_SRC = path.resolve(findProjectRoot(process.cwd()), 'src');
+const OUTPUT_DIR = path.resolve(findProjectRoot(process.cwd()), 'audit_cache');
+
+/**
+ * Robust Path Discovery: Walks up from CWD to find the project root
+ */
+function findProjectRoot(startDir: string): string {
+    let curr = path.resolve(startDir);
+    while (curr !== path.parse(curr).root) {
+        if (fs.existsSync(path.join(curr, '.git')) || fs.existsSync(path.join(curr, 'package.json'))) {
+            return curr;
+        }
+        curr = path.dirname(curr);
+    }
+    return startDir;
+}
 
 interface ComponentMetadata {
     description?: string;
@@ -81,56 +95,41 @@ async function runInventory() {
     console.log(`[Inventory] Scanning ${ROOT_SRC}...`);
     const components: Component[] = [];
 
-    // 1. Scan Skills
-    const skillsDir = path.join(ROOT_SRC, 'skills');
-    if (fs.existsSync(skillsDir)) {
-        const skillFolders = fs.readdirSync(skillsDir);
-        for (const folder of skillFolders) {
-            const fullPath = path.join(skillsDir, folder);
-            if (fs.statSync(fullPath).isDirectory()) {
-                const skillFile = path.join(fullPath, 'SKILL.md');
-                if (fs.existsSync(skillFile)) {
-                    const content = fs.readFileSync(skillFile, 'utf8');
+    const scanDirectory = (dir: string, type: 'skill' | 'tool') => {
+        if (!fs.existsSync(dir)) return;
+        const items = fs.readdirSync(dir);
+        for (const item of items) {
+            const fullPath = path.join(dir, item);
+            const stats = fs.statSync(fullPath);
+
+            if (stats.isDirectory()) {
+                // Check if it's a component (has SKILL.md or package.json)
+                const isSkill = fs.existsSync(path.join(fullPath, 'SKILL.md'));
+                const isTool = fs.existsSync(path.join(fullPath, 'package.json'));
+
+                if (isSkill || isTool) {
+                    if (item === 'skill-auditor') continue; // Skip self
+
+                    const metadata = isSkill 
+                        ? parseSkillMetadata(fs.readFileSync(path.join(fullPath, 'SKILL.md'), 'utf8'))
+                        : parseToolMetadata(fullPath);
+
                     components.push({
                         id: ulid(),
-                        type: 'skill',
-                        name: folder,
+                        type: isSkill ? 'skill' : 'tool',
+                        name: item,
                         path: fullPath,
                         metadata: {
                             isSourceOfTruth: true,
                             hasYolo: false,
-                            ...parseSkillMetadata(content)
+                            ...metadata
                         }
                     });
+                } else {
+                    // Recurse deeper (e.g., into core/personal)
+                    scanDirectory(fullPath, type);
                 }
-            }
-        }
-    }
-
-    // 2. Scan Tools
-    const toolsDir = path.join(ROOT_SRC, 'tools');
-    if (fs.existsSync(toolsDir)) {
-        const toolItems = fs.readdirSync(toolsDir);
-        for (const item of toolItems) {
-            const fullPath = path.join(toolsDir, item);
-            if (fs.statSync(fullPath).isDirectory()) {
-                // Skip self to prevent recursion
-                if (item === 'skill-auditor') {
-                    console.log(`[Inventory] Skipping self: ${item}`);
-                    continue;
-                }
-
-                components.push({
-                    id: ulid(),
-                    type: 'tool',
-                    name: item,
-                    path: fullPath,
-                    metadata: {
-                        isSourceOfTruth: true,
-                        ...parseToolMetadata(fullPath)
-                    }
-                });
-            } else if (item.endsWith('.ts')) {
+            } else if (item.endsWith('.ts') && type === 'tool') {
                 // Individual utility file
                 const content = fs.readFileSync(fullPath, 'utf8');
                 components.push({
@@ -145,7 +144,10 @@ async function runInventory() {
                 });
             }
         }
-    }
+    };
+
+    scanDirectory(path.join(ROOT_SRC, 'skills'), 'skill');
+    scanDirectory(path.join(ROOT_SRC, 'tools'), 'tool');
 
     // 3. Write Manifest
     if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);

@@ -32,6 +32,18 @@ geminiAssistant/             # Main Repository
 └── GEMINI.md                # This file
 ```
 
+## Agent Ground Rules & Collaboration
+To ensure a safe and effective peer-programming experience, the following rules apply to all agent interactions:
+
+- **The Inquiry vs. Directive Boundary:** 
+    - **Inquiries (Questions/Observations):** If the user asks a question, reports a bug, or requests analysis (e.g., "How does this work?", "Is this a bug?", "What are the risks?"), the agent MUST strictly limit its scope to **research and analysis**. Propose a strategy, but **DO NOT** modify any files or execute implementation tools.
+    - **Directives (Instructions):** The agent will only modify code or files when given an explicit instruction (e.g., "Update the file," "Fix the bug," "Execute the plan").
+- **Research -> Propose -> Wait Workflow:** For any non-trivial change, the agent MUST:
+    1. **Research:** Map the codebase and understand the scope.
+    2. **Propose:** Share a concise summary of the intended strategy and the files to be touched.
+    3. **Wait:** Obtain explicit user confirmation before touching the codebase.
+- **Architect Role (Secure Planning):** When performing architectural or technical planning (e.g., using `coding-step-planner`), the agent MUST operate in **Plan Mode** (`--approval-mode=plan`). This locks the agent into a read-only state for source files while allowing it to write to a dedicated `plans/` or `.md` spec file.
+
 ## Religious Research & Grounding Instructions
 **All agent interactions regarding JW-specific tasks must adhere to the following:**
 

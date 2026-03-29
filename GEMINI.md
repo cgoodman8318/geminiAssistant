@@ -1,7 +1,7 @@
-# GEMINI Context: JW Assistant Tooling
+# GEMINI Context: JW Assistant Tooling & Research Agent
 
 ## Project Overview
-This project is a specialized Node.js environment dedicated to automating research, content creation, and multi-voice synthesis based exclusively on the teachings of Jehovah's Witnesses. It integrates with Google's Generative AI via the `gemini` CLI and uses the Chrome DevTools MCP for interactive research.
+This project is a specialized Node.js environment dedicated to automating research, technical planning, content creation, and multi-voice synthesis. It integrates with Google's Generative AI via the `gemini` CLI and uses the Chrome DevTools MCP for interactive research.
 
 ## GitHub Integration
 The master repository for this project is managed on GitHub:
@@ -12,22 +12,28 @@ The master repository for this project is managed on GitHub:
 The `geminiAssistant` directory serves as the **Source of Truth** for all tools and skills.
 
 ```text
-Tooling/
-└── geminiAssistant/         # Main Repository
-    ├── src/
-    │   ├── skills/          # Master copies of Gemini Skills
-    │   │   ├── jw-toolkit/  # Religious Research & Grounding
-    │   │   └── web-explorer/# Interactive Browser Logic
-    │   └── tools/           # Master copies of CLI Tools (TS)
-    │       ├── kokoro/      # TTS Client
-    │       └── wol/         # Scraping & Orchestration
-    ├── package.json         # Manages global installation
-    ├── REDEPLOY.md          # Setup instructions for new machines
-    └── GEMINI.md            # This file
+geminiAssistant/             # Main Repository
+├── src/
+│   ├── skills/              # Master copies of Gemini Skills
+│   │   ├── autonomous-researcher/ # WAL-based deep web research
+│   │   ├── coding-step-planner/   # Multi-pass technical spec writer
+│   │   ├── interactive-web-explorer/ # Playwright-based browsing
+│   │   └── jw-assistant-toolkit/  # Religious Research & Grounding
+│   └── tools/               # Master copies of CLI Tools (TS)
+│       ├── autonomous-researcher/ # Search Agent Engine
+│       ├── browser_engine.ts      # Shared browser logic
+│       ├── interactive_wol_research.ts # WOL interface
+│       ├── jw_daily_orchestrator.ts # Podcast automation
+│       ├── jw_scraper_daily_text_tool.ts # Scraping logic
+│       └── kokoro_tool.ts         # TTS Client
+├── tests/                   # Tool verification tests
+├── package.json             # Manages global installation
+├── REDEPLOY.md              # Setup instructions for new machines
+└── GEMINI.md                # This file
 ```
 
 ## Religious Research & Grounding Instructions
-**All agent interactions within this workspace must adhere to the following:**
+**All agent interactions regarding JW-specific tasks must adhere to the following:**
 
 - **Core Directive:** Responses regarding religion, the Bible, or doctrines must be limited exclusively to the beliefs and teachings of Jehovah’s Witnesses.
 - **Authority & Sources:** All information must be grounded in and sourced from **jw.org** or the **Watchtower ONLINE LIBRARY (wol.jw.org)**.
@@ -35,26 +41,23 @@ Tooling/
 - **Scriptural Citations:** The **New World Translation of the Holy Scriptures (NWT)** must be used for all scriptural citations and references.
 - **Tone:** Maintain a respectful and helpful tone consistent with official publications.
 
-## Automation Toolchain (The `jw-assistant-toolkit` Skill)
-The project provides a suite of globally installed CLI tools:
+## Primary Toolchain
 
-### 1. Daily Podcast Orchestrator (`jw-daily-orchestrator`)
-- **Function:** Scrapes Daily Text -> Generates script -> Synthesizes audio.
-- **Config:** Uses `PODCAST_OUTPUT_DIR` environment variable for `.mp3` storage.
+### 1. Autonomous Research Agent (`autonomous-researcher`)
+- **Function:** Decomposes complex topics into sub-queries, performs grounded web searches, and synthesizes a professional deep-dive report.
+- **Resilience:** Uses a Write-Ahead Log (WAL) to survive crashes and resume seamlessly.
+- **Models:** Spreads load across 2.5 and 3.0 models to optimize free tier limits.
 
-### 2. Kokoro TTS Client (`kokoro-tts`)
+### 2. Daily Podcast Orchestrator (`jw-daily-orchestrator`)
+- **Function:** Scrapes Daily Text -> Generates script -> Synthesizes audio using Kokoro TTS.
+- **Config:** Uses `PODCAST_OUTPUT_DIR` environment variable.
+
+### 3. Kokoro TTS Client (`kokoro-tts`)
 - **Function:** Multi-voice mapping and job monitoring for the Kokoro server.
 - **Config:** Uses `KOKORO_SERVER_URL` (Default: `http://192.168.1.68:5000`).
-- **Voices:**
-    - `father`: `custom_72b25c0f-5e02-4b64-be2b-96ce15d66664`
-    - `mother`: `custom_7dc4c524-efae-4889-b49e-2feb7971bb0e`
-    - `child`: `custom_c3b38692-9889-4782-841d-2e77c7352c8e`
 
-### 3. JW Scraper Tool (`jw-scraper-daily`)
-- **Function:** Scrapes the Daily Text and deep-linked references from `wol.jw.org`.
-
-### 4. Interactive WOL Research (`wol-research`)
-- **Function:** Starts an interactive research session via Chrome DevTools MCP.
+### 4. Technical Planner (`coding-step-planner`)
+- **Function:** A 3-pass workflow to turn abstract project steps into detailed, code-ready specs for Julia, Toit, and MS SQL.
 
 ## Global Installation & Updates
 To "publish" changes from the `geminiAssistant` repository to your user-level environment:
@@ -64,7 +67,7 @@ To "publish" changes from the `geminiAssistant` repository to your user-level en
 3.  **Browsers:** `npx playwright install chromium` (First-time setup).
 
 ## Development Conventions
-- **Language:** TypeScript (`node --import tsx`).
+- **Language:** TypeScript (`tsx`).
+- **Style:** camelCase naming conventions.
 - **Environment:** Windows (win32).
 - **Persistence:** Browser sessions and temp files are managed in `~/.gemini/` and system temp dirs.
-- **Redeployment:** See `REDEPLOY.md` for full environment setup instructions.

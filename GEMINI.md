@@ -30,5 +30,6 @@ Specialized tools built on Core foundations for JW-specific workflows.
 
 ## Development Conventions
 - **Structure:** All master files reside in `src/`.
+- **Julia Hooks:** For `gemini-cli` hooks (e.g., `snapshotBuilder.jl`), always write the logic to a `.jl` file and execute it rather than using inline `julia -e` commands to avoid complex shell escaping issues in PowerShell/Windows. Use **JSON3** for all JSON processing.
 - **Pathing:** Uses dynamic path discovery to support global installation and sandboxed secrets.
 - **Security:** Follow the **Agent Ground Rules** in the root `GEMINI.md`.

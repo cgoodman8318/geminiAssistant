@@ -3,6 +3,7 @@ import * as path from 'path';
 import { ulid } from 'ulid';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import { analyzeComponent } from './scanner.js';
 
 /**
  * SKILL AUDITOR CLI TOOL
@@ -26,6 +27,7 @@ interface Component {
     name: string;
     path: string;
     metadata: ComponentMetadata;
+    security?: any;
 }
 
 /**
@@ -159,10 +161,42 @@ async function runInventory() {
     console.log(`[Path] ${manifestPath}`);
 }
 
+async function runAnalysis() {
+    const manifestPath = path.join(OUTPUT_DIR, 'manifest.json');
+    if (!fs.existsSync(manifestPath)) {
+        console.error("[Error] Manifest not found. Run 'inventory' first.");
+        process.exit(1);
+    }
+
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    console.log(`[Analysis] Auditing ${manifest.components.length} components...`);
+
+    const results = [];
+    for (const comp of manifest.components) {
+        console.log(`[Red Team] Reviewing: ${comp.name}...`);
+        const security = analyzeComponent(comp.path);
+        results.push({
+            ...comp,
+            security
+        });
+    }
+
+    const scorecardPath = path.join(OUTPUT_DIR, 'security_scorecard.json');
+    fs.writeFileSync(scorecardPath, JSON.stringify({
+        timestamp: new Date().toISOString(),
+        results
+    }, null, 2));
+
+    console.log(`[Success] Security Scorecard generated: ${scorecardPath}`);
+}
+
 async function main() {
     const argv: any = yargs(hideBin(process.argv))
         .command('inventory', 'Generate a manifest of all skills and tools', {}, async () => {
             await runInventory();
+        })
+        .command('analyze', 'Perform security deep-dive on inventoried components', {}, async () => {
+            await runAnalysis();
         })
         .demandCommand(1, 'Please provide a command')
         .help()

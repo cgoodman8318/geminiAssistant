@@ -28,7 +28,7 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 const MODELS = {
     PLANNER: "gemini-2.5-flash",           
     SEARCHER: "gemini-2.5-flash-lite",    
-    SYNTHESIZER: "gemini-3-flash-preview", 
+    SYNTHESIZER: "gemini-2.5-flash", 
     DEEP_RESEARCH: "models/deep-research-pro-preview-12-2025" 
 };
 

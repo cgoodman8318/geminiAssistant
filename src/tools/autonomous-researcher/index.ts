@@ -1,10 +1,12 @@
-const fs = require('fs');
-require('dotenv').config();
-const path = require('path');
-const { ulid } = require('ulid');
-const yargs = require('yargs/yargs');
-const { hideBin } = require('yargs/helpers');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import * as fs from 'fs';
+import * as path from 'path';
+import { ulid } from 'ulid';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 /**
  * SYSTEM SPECIFICATION: CASS-Compatible Autonomous Research Agent
@@ -51,7 +53,7 @@ const REPORT_FILENAME = 'report.md';
 /**
  * Safe WAL Parser: Reads line-by-line and stops at the first corruption.
  */
-function safeReadJSONL(filePath) {
+function safeReadJSONL(filePath: string): any[] {
     if (!fs.existsSync(filePath)) return [];
     const content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n');
@@ -71,7 +73,7 @@ function safeReadJSONL(filePath) {
 /**
  * Appends an entry to the WAL file.
  */
-function appendToWAL(dir, entry) {
+function appendToWAL(dir: string, entry: any): any {
     const filePath = path.join(dir, WAL_FILENAME);
     const fullEntry = {
         ulid: ulid(),
@@ -85,7 +87,7 @@ function appendToWAL(dir, entry) {
 /**
  * Logs raw data/responses for debugging.
  */
-function logDebug(dir, content) {
+function logDebug(dir: string, content: string): void {
     const filePath = path.join(dir, LOG_FILENAME);
     fs.appendFileSync(filePath, `\n---\nTimestamp: ${new Date().toISOString()}\n${content}\n`);
 }
@@ -93,36 +95,36 @@ function logDebug(dir, content) {
 /**
  * Execute a grounded search using Google Search Tool
  */
-async function executeGroundedSearch(dir, query) {
+async function executeGroundedSearch(dir: string, query: string): Promise<{ ok: boolean, summary?: string, links?: any[], error?: string }> {
     try {
         const model = genAI.getGenerativeModel({ model: MODELS.SEARCHER });
         // Using Google Search Grounding tool
         const result = await model.generateContent({
             contents: [{ role: "user", parts: [{ text: `Search for information on: ${query}. Summarize the key findings and provide specific URLs found.` }] }],
-            tools: [{ googleSearch: {} }],
+            tools: [{ googleSearch: {} } as any],
         });
 
         const response = await result.response;
         const text = response.text();
         
         // Extract links from grounding metadata if available
-        let links = [];
-        const metadata = response.candidates?.[0]?.groundingMetadata;
+        let links: any[] = [];
+        const metadata: any = response.candidates?.[0]?.groundingMetadata;
         if (metadata?.groundingChunks) {
             links = metadata.groundingChunks
-                .filter(chunk => chunk.web && chunk.web.uri)
-                .map(chunk => ({ title: chunk.web.title, url: chunk.web.uri }));
+                .filter((chunk: any) => chunk.web && chunk.web.uri)
+                .map((chunk: any) => ({ title: chunk.web.title, url: chunk.web.uri }));
         }
 
         return { ok: true, summary: text, links };
-    } catch (err) {
+    } catch (err: any) {
         return { ok: false, error: err.message };
     }
 }
 
 // --- Execution Phases ---
 
-async function runPhase1_QueryPlanning(dir, query, wal) {
+async function runPhase1_QueryPlanning(dir: string, query: string, wal: any[]): Promise<void> {
     const stepId = "QUERY_PLAN";
     if (wal.some(e => e.stepId === stepId && e.status === "COMPLETED")) {
         console.log(`[Phase 1] ${stepId} already completed. Skipping.`);
@@ -146,14 +148,14 @@ async function runPhase1_QueryPlanning(dir, query, wal) {
         appendToWAL(dir, { stepId, intent: "QUERY_PLAN", status: "COMPLETED", subIndex: null, data: { subQueries } });
         
         const reportPath = path.join(dir, REPORT_FILENAME);
-        fs.appendFileSync(reportPath, `## Research Plan\n\n${subQueries.map(q => `- ${q}`).join('\n')}\n\n`);
-    } catch (err) {
+        fs.appendFileSync(reportPath, `## Research Plan\n\n${subQueries.map((q: string) => `- ${q}`).join('\n')}\n\n`);
+    } catch (err: any) {
         appendToWAL(dir, { stepId, intent: "QUERY_PLAN", status: "FAILED", subIndex: null, data: { error: err.message } });
         throw new Error("Failed to parse query plan JSON.");
     }
 }
 
-async function runPhase2_SearchLoop(dir, wal) {
+async function runPhase2_SearchLoop(dir: string, wal: any[]): Promise<void> {
     const planEntry = wal.find(e => e.stepId === "QUERY_PLAN" && e.status === "COMPLETED");
     if (!planEntry) throw new Error("Query plan not found in WAL.");
 
@@ -191,7 +193,7 @@ async function runPhase2_SearchLoop(dir, wal) {
     }
 }
 
-async function runPhase3_Synthesis(dir, wal) {
+async function runPhase3_Synthesis(dir: string, wal: any[]): Promise<void> {
     const stepId = "SYNTHESIS";
     if (wal.some(e => e.stepId === stepId && e.status === "COMPLETED")) {
         console.log(`[Phase 3] ${stepId} already completed. Skipping.`);
@@ -230,13 +232,13 @@ async function runPhase3_Synthesis(dir, wal) {
         fs.appendFileSync(reportPath, `## Final Deep-Dive Synthesis\n\n${fullReportContent}\n\n`);
         
         appendToWAL(dir, { stepId, intent: "SYNTHESIS", status: "COMPLETED", subIndex: null, data: { length: fullReportContent.length } });
-    } catch (err) {
+    } catch (err: any) {
         appendToWAL(dir, { stepId, intent: "SYNTHESIS", status: "FAILED", subIndex: null, data: { error: err.message } });
         throw err;
     }
 }
 
-async function runPhase4_WrapUp(dir, wal) {
+async function runPhase4_WrapUp(dir: string, wal: any[]): Promise<void> {
     const stepId = "WRAP_UP";
     if (wal.some(e => e.stepId === stepId && e.status === "COMPLETED")) {
         return;
@@ -249,7 +251,7 @@ async function runPhase4_WrapUp(dir, wal) {
     wal.filter(e => e.intent === "SEARCH_LOOP" && e.status === "COMPLETED")
        .forEach(e => {
            if (e.data.links) {
-               e.data.links.forEach(link => allLinks.set(link.url, link.title || link.url));
+               e.data.links.forEach((link: any) => allLinks.set(link.url, link.title || link.url));
            }
        });
 
@@ -271,14 +273,14 @@ async function runPhase4_WrapUp(dir, wal) {
 // --- Main Engine ---
 
 async function main() {
-    const argv = yargs(hideBin(process.argv))
+    const argv: any = yargs(hideBin(process.argv))
         .option('query', { type: 'string', describe: 'The research query' })
         .option('resume', { type: 'string', describe: 'Path to an existing research directory to resume' })
         .argv;
 
-    let researchDir;
-    let currentQuery;
-    let wal = [];
+    let researchDir: string;
+    let currentQuery: string;
+    let wal: any[] = [];
 
     if (argv.resume) {
         researchDir = argv.resume;
@@ -329,7 +331,7 @@ async function main() {
         
         console.log(`\n[System] Success! Report finalized in ${researchDir}/${REPORT_FILENAME}`);
         process.exit(0);
-    } catch (err) {
+    } catch (err: any) {
         console.error(`\n[FATAL] ${err.message}`);
         process.exit(1);
     }

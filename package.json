@@ -22,7 +22,7 @@
   "scripts": {
     "install-tools": "npm install -g .",
     "install-skills": "npm run install-skills-core && npm run install-skills-personal",
-    "install-skills-core": "gemini skills install src/skills/core/autonomous-researcher --consent && gemini skills install src/skills/core/interactive-web-explorer --consent && gemini skills install src/skills/core/coding-step-planner --consent && gemini skills install src/skills/core/skill-auditor --consent",
+    "install-skills-core": "gemini skills install src/skills/core/autonomous-researcher --consent && gemini skills install src/skills/core/interactive-web-explorer --consent && gemini skills install src/skills/core/coding-step-planner --consent && gemini skills install src/skills/core/skill-auditor --consent && gemini skills install src/skills/core/home-assistant --consent",
     "install-skills-personal": "gemini skills install src/skills/personal/jw-assistant-toolkit --consent",
     "test": "npx tsx tests/tools_integration.spec.ts"
   },

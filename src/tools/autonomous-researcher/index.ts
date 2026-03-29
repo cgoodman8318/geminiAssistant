@@ -6,11 +6,32 @@ import { hideBin } from 'yargs/helpers';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 
-// Path to the secure root-level secrets file
-const SECRETS_PATH = path.resolve(process.cwd(), '../../../../.secrets/researcher.env');
-const OUTPUT_ROOT = path.resolve(process.cwd(), '../../../../research_outputs');
+/**
+ * Robust Path Discovery: Walks up from CWD to find the project root
+ * (where geminiAssistant or .git exists).
+ */
+function findProjectRoot(startDir: string): string {
+    let curr = path.resolve(startDir);
+    while (curr !== path.parse(curr).root) {
+        if (fs.existsSync(path.join(curr, '.git')) || fs.existsSync(path.join(curr, 'package.json'))) {
+            return curr;
+        }
+        curr = path.dirname(curr);
+    }
+    return startDir;
+}
 
-dotenv.config({ path: SECRETS_PATH });
+const PROJECT_ROOT = findProjectRoot(process.cwd());
+const SECRETS_PATH = path.join(PROJECT_ROOT, '../.secrets/researcher.env');
+const OUTPUT_ROOT = path.join(PROJECT_ROOT, '../research_outputs');
+
+// Load secrets if file exists
+if (fs.existsSync(SECRETS_PATH)) {
+    dotenv.config({ path: SECRETS_PATH });
+} else {
+    // Fallback to local .env if sandbox not found
+    dotenv.config();
+}
 
 /**
  * SYSTEM SPECIFICATION: CASS-Compatible Autonomous Research Agent
@@ -22,7 +43,7 @@ dotenv.config({ path: SECRETS_PATH });
 // --- Configuration & Constants ---
 const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) {
-    console.error(`Error: GEMINI_API_KEY environment variable is required at ${SECRETS_PATH}`);
+    console.error(`Error: GEMINI_API_KEY not found in process.env or ${SECRETS_PATH}`);
     process.exit(1);
 }
 

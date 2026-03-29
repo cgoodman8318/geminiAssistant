@@ -1,8 +1,9 @@
 ---
 name: autonomous-researcher
 description: >
-  Activates the Autonomous Research Agent (CASS-compatible) to perform deep-dive, grounded
+  Activates the Autonomous Research Agent to perform deep-dive, grounded
   web research on complex topics. Use this when the user asks for "deep research",
+
   "write a report on X", "investigate the latest advancements in Y", or any request
   requiring multiple sequential web searches and high-reasoning synthesis.
   This skill orchestrates a multi-pass workflow using 2.5 and 3.0 models:

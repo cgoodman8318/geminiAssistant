@@ -34,7 +34,7 @@ if (fs.existsSync(SECRETS_PATH)) {
 }
 
 /**
- * SYSTEM SPECIFICATION: CASS-Compatible Autonomous Research Agent
+ * SYSTEM SPECIFICATION: Autonomous Research Agent
  * 
  * Philosophy: Step-Based State Machine with a Write-Ahead Log (WAL).
  * Resilience: Survive hard crashes and resume cleanly.

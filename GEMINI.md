@@ -18,15 +18,17 @@ geminiAssistant/             # Main Repository
 │   │   ├── autonomous-researcher/ # WAL-based deep web research
 │   │   ├── coding-step-planner/   # Multi-pass technical spec writer
 │   │   ├── interactive-web-explorer/ # Playwright-based browsing
-│   │   └── jw-assistant-toolkit/  # Religious Research & Grounding
+│   │   ├── jw-assistant-toolkit/  # Religious Research & Grounding
+│   │   └── skill-auditor/         # Automated security & logic review
 │   └── tools/               # Master copies of CLI Tools (TS)
 │       ├── autonomous-researcher/ # Search Agent Engine
+│       ├── skill-auditor/         # Workspace integrity scanner
 │       ├── browser_engine.ts      # Shared browser logic
 │       ├── interactive_wol_research.ts # WOL interface
 │       ├── jw_daily_orchestrator.ts # Podcast automation
 │       ├── jw_scraper_daily_text_tool.ts # Scraping logic
 │       └── kokoro_tool.ts         # TTS Client
-├── tests/                   # Tool verification tests
+├── tests/                   # Tool verification tests (ESM)
 ├── package.json             # Manages global installation
 ├── REDEPLOY.md              # Setup instructions for new machines
 └── GEMINI.md                # This file
@@ -36,13 +38,10 @@ geminiAssistant/             # Main Repository
 To ensure a safe and effective peer-programming experience, the following rules apply to all agent interactions:
 
 - **The Inquiry vs. Directive Boundary:** 
-    - **Inquiries (Questions/Observations):** If the user asks a question, reports a bug, or requests analysis (e.g., "How does this work?", "Is this a bug?", "What are the risks?"), the agent MUST strictly limit its scope to **research and analysis**. Propose a strategy, but **DO NOT** modify any files or execute implementation tools.
+    - **Inquiries (Questions/Observations):** If the user asks a question, reports a bug, or requests analysis, the agent MUST strictly limit its scope to **research and analysis**. Propose a strategy, but **DO NOT** modify any files or execute implementation tools.
     - **Directives (Instructions):** The agent will only modify code or files when given an explicit instruction (e.g., "Update the file," "Fix the bug," "Execute the plan").
-- **Research -> Propose -> Wait Workflow:** For any non-trivial change, the agent MUST:
-    1. **Research:** Map the codebase and understand the scope.
-    2. **Propose:** Share a concise summary of the intended strategy and the files to be touched.
-    3. **Wait:** Obtain explicit user confirmation before touching the codebase.
-- **Architect Role (Secure Planning):** When performing architectural or technical planning (e.g., using `coding-step-planner`), the agent MUST operate in **Plan Mode** (`--approval-mode=plan`). This locks the agent into a read-only state for source files while allowing it to write to a dedicated `plans/` or `.md` spec file.
+- **Research -> Propose -> Wait Workflow:** For any non-trivial change, the agent MUST Research, Propose a concise summary of the strategy, and Wait for explicit user confirmation.
+- **Architect Role (Secure Planning):** When performing architectural or technical planning (e.g., using `coding-step-planner`), the agent MUST operate in **Plan Mode** (`--approval-mode=plan`). This locks the agent into a read-only state for source files.
 
 ## Religious Research & Grounding Instructions
 **All agent interactions regarding JW-specific tasks must adhere to the following:**
@@ -57,29 +56,26 @@ To ensure a safe and effective peer-programming experience, the following rules 
 
 ### 1. Autonomous Research Agent (`autonomous-researcher`)
 - **Function:** Decomposes complex topics into sub-queries, performs grounded web searches, and synthesizes a professional deep-dive report.
-- **Resilience:** Uses a Write-Ahead Log (WAL) to survive crashes and resume seamlessly.
+- **Security:** Reads secrets from `.secrets/` and writes findings to `research_outputs/` outside the source tree.
 - **Models:** Spreads load across 2.5 and 3.0 models to optimize free tier limits.
 
-### 2. Daily Podcast Orchestrator (`jw-daily-orchestrator`)
+### 2. Skill & Tool Auditor (`skill-auditor`)
+- **Function:** Performs a 3-pass audit (Inventory -> Red Team Analysis -> Reporting) to ensure security and architectural health.
+- **Score:** Currently maintaining a **100/100 Security Score**.
+
+### 3. Daily Podcast Orchestrator (`jw-daily-orchestrator`)
 - **Function:** Scrapes Daily Text -> Generates script -> Synthesizes audio using Kokoro TTS.
-- **Config:** Uses `PODCAST_OUTPUT_DIR` environment variable.
-
-### 3. Kokoro TTS Client (`kokoro-tts`)
-- **Function:** Multi-voice mapping and job monitoring for the Kokoro server.
-- **Config:** Uses `KOKORO_SERVER_URL` (Default: `http://192.168.1.68:5000`).
-
-### 4. Technical Planner (`coding-step-planner`)
-- **Function:** A 3-pass workflow to turn abstract project steps into detailed, code-ready specs for Julia, Toit, and MS SQL.
+- **Performance:** Uses async `spawn` with manual timeouts to ensure non-blocking execution.
 
 ## Global Installation & Updates
 To "publish" changes from the `geminiAssistant` repository to your user-level environment:
 
-1.  **CLI Tools:** `npm run install-tools` (Installs global bin links).
-2.  **Gemini Skills:** `npm run install-skills` (Installs master prompt files).
-3.  **Browsers:** `npx playwright install chromium` (First-time setup).
+1.  **CLI Tools:** `npm run install-tools`
+2.  **Gemini Skills:** `npm run install-skills`
+3.  **Tests:** `cd geminiAssistant && npx tsx tests/tools_integration.spec.ts`
 
 ## Development Conventions
 - **Language:** TypeScript (`tsx`).
 - **Style:** camelCase naming conventions.
 - **Environment:** Windows (win32).
-- **Persistence:** Browser sessions and temp files are managed in `~/.gemini/` and system temp dirs.
+- **Architecture:** "Source of Truth" model. All local files in `src/` must be production-ready and free of secrets.

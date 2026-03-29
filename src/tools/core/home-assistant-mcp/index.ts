@@ -165,6 +165,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // 6. Connect & Run
 async function runServer() {
+  if (process.argv.includes('--test')) {
+    console.error('[HA MCP] Running in test mode: Listing lights...');
+    try {
+      const states = await ha.getStates();
+      const lights = states.filter(s => s.entity_id.startsWith('light.'));
+      console.log(JSON.stringify(lights.map(l => ({
+        entity_id: l.entity_id,
+        state: l.state,
+        friendly_name: l.attributes.friendly_name
+      })), null, 2));
+      process.exit(0);
+    } catch (err: any) {
+      console.error(`[HA MCP] Test failed: ${err.message}`);
+      process.exit(1);
+    }
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   // Log to stderr because stdout is used for MCP messages

@@ -31,6 +31,7 @@
     "browser-engine": "./src/tools/core/browser_engine.ts",
     "autonomous-researcher": "./src/tools/core/autonomous-researcher/index.ts",
     "skill-auditor": "./src/tools/core/skill-auditor/index.ts",
+    "home-assistant-mcp": "./src/tools/core/home-assistant-mcp/index.ts",
     "jw-scraper-daily": "./src/tools/personal/jw_scraper_daily_text_tool.ts",
     "jw-daily-orchestrator": "./src/tools/personal/jw_daily_orchestrator.ts",
     "wol-research": "./src/tools/personal/interactive_wol_research.ts"

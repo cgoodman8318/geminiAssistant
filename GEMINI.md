@@ -23,7 +23,19 @@ This workspace implements a deterministic, multi-ecosystem diagnostic engine via
 - **Phase B (AfterTool):** `forensicLookup.jl` intercepts failures, parses stack traces, and injects diagnostic context.
 - **Language Extension:** Support for new ecosystems follows the [Language Extension Spec](.gemini/docs/LanguageExtensionSpec.md).
 
+## Team Workflow & State Protocol
+To maintain high-integrity development, follow the **Project Lifecycle**:
+
+1.  **Architecture (The Architect):** Use **`project-planner`** for new ideas. It produces a `Plan_<Name>_YYYYMMDD.md` in the root.
+2.  **Tactical Spec (The Tactical Architect):** Use **`coding-step-planner`** to break down a specific step from the Plan into a `Spec_<Step>_YYYYMMDD.md`.
+3.  **Research (The Lead Researcher):** Use **`autonomous-researcher`** for deep-dives into unknown technologies or complex library APIs.
+4.  **Execution (The Developer):** Implement code ONLY after a Spec is approved.
+5.  **Forensics (The Investigator):** Upon tool failure, the **`code-debugger`** skill triggers automatically. Follow its 3-step diagnostic protocol strictly.
+
+**State Rule:** Always check for existing `Plan_*.md` and `Spec_*.md` files at session start to establish the current "Source of Truth."
+
 ## Religious Research & Grounding Instructions
+
 **All interactions involving JW-specific tasks MUST adhere to these constraints:**
 - **Authority:** Information must be sourced exclusively from **jw.org** or **wol.jw.org**.
 - **Citations:** Use the **New World Translation (NWT)** for all scriptural references.

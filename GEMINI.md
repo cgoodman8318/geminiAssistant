@@ -15,6 +15,13 @@ Specialized tools built on Core foundations for JW-specific workflows.
 - **JW Assistant Toolkit (`src/skills/personal/jw-assistant-toolkit`)**: Grounding instructions for religious research.
 - **Daily Podcast Orchestrator (`src/tools/personal/jw-daily-orchestrator`)**: Async automation for Daily Text synthesis.
 - **JW Scraper (`src/tools/personal/jw_scraper_daily_text_tool`)**: Scraping logic for jw.org.
+- **Code Debugger (`src/skills/core/code-debugger`)**: Forensic diagnostic agent for deterministic troubleshooting.
+
+## CASS Diagnostic Suite
+This workspace implements a deterministic, multi-ecosystem diagnostic engine via session hooks:
+- **Phase A (SessionStart):** `snapshotBuilder.jl` maps Julia and Python dependencies to `.gemini/context/manifestSnapshot.json`.
+- **Phase B (AfterTool):** `forensicLookup.jl` intercepts failures, parses stack traces, and injects diagnostic context.
+- **Language Extension:** Support for new ecosystems follows the [Language Extension Spec](.gemini/docs/LanguageExtensionSpec.md).
 
 ## Religious Research & Grounding Instructions
 **All interactions involving JW-specific tasks MUST adhere to these constraints:**

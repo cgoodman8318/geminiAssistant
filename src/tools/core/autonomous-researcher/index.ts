@@ -1,3 +1,4 @@
+#!/usr/bin/env node --import tsx
 import * as fs from 'fs';
 import * as path from 'path';
 import { ulid } from 'ulid';
@@ -22,8 +23,16 @@ function findProjectRoot(startDir: string): string {
 }
 
 const PROJECT_ROOT = findProjectRoot(process.cwd());
-const SECRETS_PATH = path.join(PROJECT_ROOT, '../.secrets/researcher.env');
-const OUTPUT_ROOT = path.join(PROJECT_ROOT, '../research_outputs');
+// Robust secrets discovery: check both in project root and parent
+let SECRETS_PATH = path.join(PROJECT_ROOT, '.secrets/researcher.env');
+if (!fs.existsSync(SECRETS_PATH)) {
+    SECRETS_PATH = path.join(PROJECT_ROOT, '../.secrets/researcher.env');
+}
+
+let OUTPUT_ROOT = path.join(PROJECT_ROOT, 'research_outputs');
+if (!fs.existsSync(OUTPUT_ROOT) && fs.existsSync(path.join(PROJECT_ROOT, '../research_outputs'))) {
+    OUTPUT_ROOT = path.join(PROJECT_ROOT, '../research_outputs');
+}
 
 // Load secrets if file exists
 if (fs.existsSync(SECRETS_PATH)) {
@@ -49,11 +58,13 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-// Multi-Model Configuration for Free Tier optimization and specialized tasks
+// Multi-Model Configuration for Paid Tier (March 2026 Optimization)
+// Priority: Cost per token and Grounding search fees.
 const MODELS = {
-    PLANNER: "gemini-2.5-flash",           
-    SEARCHER: "gemini-2.5-flash-lite",    
-    SYNTHESIZER: "gemini-2.5-flash", 
+    PLANNER: "gemini-2.5-flash",           // $0.30/M input
+    SEARCHER_PRIMARY: "gemini-3.1-flash-lite-preview", // $0.25/M tokens, cheaper search grounding ($14/1k)
+    SEARCHER_SECONDARY: "gemini-2.5-flash-lite", // $0.10/M tokens (fallback for search)
+    SYNTHESIZER: "gemini-2.5-flash-lite", // $0.40/M output - cheapest for long generation
     DEEP_RESEARCH: "models/deep-research-pro-preview-12-2025" 
 };
 
@@ -74,6 +85,35 @@ const REPORT_FILENAME = 'report.md';
  */
 
 // --- Core Utilities ---
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Paid-Tier Retry Wrapper: Standard Exponential Backoff
+ */
+async function callWithRetry<T>(
+    operation: () => Promise<T>,
+    modelName: string,
+    maxRetries: number = 3
+): Promise<T> {
+    let lastError: any;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            return await operation();
+        } catch (error: any) {
+            lastError = error;
+            // 429 errors on paid tier still require backoff, but much shorter
+            if (error.message?.includes('429') || error.status === 429) {
+                const waitSecs = Math.pow(2, attempt) * 2; // 2s, 4s, 8s backoff
+                console.warn(`[Backoff] 429 for ${modelName}. Attempt ${attempt + 1}/${maxRetries}. Waiting ${waitSecs}s...`);
+                await delay(waitSecs * 1000);
+                continue;
+            }
+            throw error;
+        }
+    }
+    throw lastError;
+}
 
 /**
  * Safe WAL Parser: Reads line-by-line and stops at the first corruption.
@@ -120,31 +160,27 @@ function logDebug(dir: string, content: string): void {
 /**
  * Execute a grounded search using Google Search Tool
  */
-async function executeGroundedSearch(dir: string, query: string): Promise<{ ok: boolean, summary?: string, links?: any[], error?: string }> {
-    try {
-        const model = genAI.getGenerativeModel({ model: MODELS.SEARCHER });
-        // Using Google Search Grounding tool
-        const result = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: `Search for information on: ${query}. Summarize the key findings and provide specific URLs found.` }] }],
-            tools: [{ googleSearch: {} } as any],
-        });
+async function executeGroundedSearch(dir: string, modelName: string, query: string): Promise<{ summary: string, links: any[] }> {
+    const model = genAI.getGenerativeModel({ model: modelName });
+    // Using Google Search Grounding tool
+    const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: `Search for information on: ${query}. Summarize the key findings and provide specific URLs found.` }] }],
+        tools: [{ googleSearch: {} } as any],
+    });
 
-        const response = await result.response;
-        const text = response.text();
-        
-        // Extract links from grounding metadata if available
-        let links: any[] = [];
-        const metadata: any = response.candidates?.[0]?.groundingMetadata;
-        if (metadata?.groundingChunks) {
-            links = metadata.groundingChunks
-                .filter((chunk: any) => chunk.web && chunk.web.uri)
-                .map((chunk: any) => ({ title: chunk.web.title, url: chunk.web.uri }));
-        }
-
-        return { ok: true, summary: text, links };
-    } catch (err: any) {
-        return { ok: false, error: err.message };
+    const response = await result.response;
+    const text = response.text();
+    
+    // Extract links from grounding metadata if available
+    let links: any[] = [];
+    const metadata: any = response.candidates?.[0]?.groundingMetadata;
+    if (metadata?.groundingChunks) {
+        links = metadata.groundingChunks
+            .filter((chunk: any) => chunk.web && chunk.web.uri)
+            .map((chunk: any) => ({ title: chunk.web.title, url: chunk.web.uri }));
     }
+
+    return { summary: text, links };
 }
 
 // --- Execution Phases ---
@@ -159,16 +195,17 @@ async function runPhase1_QueryPlanning(dir: string, query: string, wal: any[]): 
     console.log(`[Phase 1] Planning queries using ${MODELS.PLANNER}...`);
     appendToWAL(dir, { stepId, intent: "QUERY_PLAN", status: "STARTED", subIndex: null, data: null });
 
-    const model = genAI.getGenerativeModel({ model: MODELS.PLANNER });
-    const prompt = `Decompose the following research request into 3-5 specific, high-quality search queries. 
-    Output ONLY a JSON array of strings.
-    Request: "${query}"`;
-
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
-    logDebug(dir, `Query Plan Response: ${responseText}`);
-
     try {
+        const responseText = await callWithRetry(async () => {
+            const model = genAI.getGenerativeModel({ model: MODELS.PLANNER });
+            const prompt = `Decompose the following research request into 2-3 specific, high-quality search queries. 
+            Output ONLY a JSON array of strings.
+            Request: "${query}"`;
+            const result = await model.generateContent(prompt);
+            return result.response.text();
+        }, MODELS.PLANNER);
+
+        logDebug(dir, `Query Plan Response: ${responseText}`);
         const subQueries = JSON.parse(responseText.replace(/```json|```/g, '').trim());
         appendToWAL(dir, { stepId, intent: "QUERY_PLAN", status: "COMPLETED", subIndex: null, data: { subQueries } });
         
@@ -176,7 +213,7 @@ async function runPhase1_QueryPlanning(dir: string, query: string, wal: any[]): 
         fs.appendFileSync(reportPath, `## Research Plan\n\n${subQueries.map((q: string) => `- ${q}`).join('\n')}\n\n`);
     } catch (err: any) {
         appendToWAL(dir, { stepId, intent: "QUERY_PLAN", status: "FAILED", subIndex: null, data: { error: err.message } });
-        throw new Error("Failed to parse query plan JSON.");
+        throw new Error(`Failed during Phase 1: ${err.message}`);
     }
 }
 
@@ -185,6 +222,7 @@ async function runPhase2_SearchLoop(dir: string, wal: any[]): Promise<void> {
     if (!planEntry) throw new Error("Query plan not found in WAL.");
 
     const { subQueries } = planEntry.data;
+    let currentModel = MODELS.SEARCHER_PRIMARY;
 
     for (let i = 0; i < subQueries.length; i++) {
         const stepId = `SEARCH_LOOP_${i}`;
@@ -195,25 +233,35 @@ async function runPhase2_SearchLoop(dir: string, wal: any[]): Promise<void> {
             continue;
         }
 
-        console.log(`[Phase 2] Executing Grounded Search ${i+1}/${subQueries.length}: ${query}`);
-        appendToWAL(dir, { stepId, intent: "SEARCH_LOOP", status: "STARTED", subIndex: i, data: { query } });
+        console.log(`[Phase 2] Executing Grounded Search ${i+1}/${subQueries.length} using ${currentModel}: ${query}`);
+        appendToWAL(dir, { stepId, intent: "SEARCH_LOOP", status: "STARTED", subIndex: i, data: { query, modelUsed: currentModel } });
 
-        const searchResult = await executeGroundedSearch(dir, query);
-        logDebug(dir, `Search Result ${i}: ${JSON.stringify(searchResult)}`);
+        try {
+            const data = await callWithRetry(async () => {
+                const result = await executeGroundedSearch(dir, currentModel, query);
+                return { 
+                    summary: result.summary,
+                    links: result.links,
+                    query: query,
+                    modelUsed: currentModel
+                };
+            }, currentModel);
 
-        if (searchResult.ok) {
-            const data = { 
-                summary: searchResult.summary,
-                links: searchResult.links,
-                query: query
-            };
             appendToWAL(dir, { stepId, intent: "SEARCH_LOOP", status: "COMPLETED", subIndex: i, data });
             
             const reportPath = path.join(dir, REPORT_FILENAME);
             fs.appendFileSync(reportPath, `### Findings for: ${query}\n${data.summary}\n\n`);
-        } else {
-            appendToWAL(dir, { stepId, intent: "SEARCH_LOOP", status: "FAILED", subIndex: i, data: { error: searchResult.error } });
-            console.error(`[Phase 2] Search failed for ${query}: ${searchResult.error}`);
+        } catch (err: any) {
+            // If primary failed with quota even after retries, try rotating to secondary
+            if (currentModel === MODELS.SEARCHER_PRIMARY && (err.message?.includes('429') || err.status === 429)) {
+                console.warn(`[Rotation] ${currentModel} exhausted. Rotating to ${MODELS.SEARCHER_SECONDARY}...`);
+                currentModel = MODELS.SEARCHER_SECONDARY;
+                i--; // Retry the same query index with the new model
+                continue;
+            }
+
+            appendToWAL(dir, { stepId, intent: "SEARCH_LOOP", status: "FAILED", subIndex: i, data: { error: err.message, modelUsed: currentModel } });
+            console.error(`[Phase 2] Search failed for ${query}: ${err.message}`);
         }
     }
 }
@@ -239,19 +287,22 @@ async function runPhase3_Synthesis(dir: string, wal: any[]): Promise<void> {
     RESEARCH FINDINGS:
     ${summaries}`;
 
-    const model = genAI.getGenerativeModel({ model: MODELS.SYNTHESIZER });
-    const logStream = fs.createWriteStream(path.join(dir, LOG_FILENAME), { flags: 'a' });
-    logStream.write('\n\n--- SYNTHESIS STREAM ---\n');
-
-    let fullReportContent = "";
     try {
-        const result = await model.generateContentStream(prompt);
-        for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
-            fullReportContent += chunkText;
-            logStream.write(chunkText);
-        }
-        logStream.end();
+        const fullReportContent = await callWithRetry(async () => {
+            const model = genAI.getGenerativeModel({ model: MODELS.SYNTHESIZER });
+            const logStream = fs.createWriteStream(path.join(dir, LOG_FILENAME), { flags: 'a' });
+            logStream.write('\n\n--- SYNTHESIS STREAM ---\n');
+
+            let content = "";
+            const result = await model.generateContentStream(prompt);
+            for await (const chunk of result.stream) {
+                const chunkText = chunk.text();
+                content += chunkText;
+                logStream.write(chunkText);
+            }
+            logStream.end();
+            return content;
+        }, MODELS.SYNTHESIZER);
 
         const reportPath = path.join(dir, REPORT_FILENAME);
         fs.appendFileSync(reportPath, `## Final Deep-Dive Synthesis\n\n${fullReportContent}\n\n`);
@@ -259,7 +310,7 @@ async function runPhase3_Synthesis(dir: string, wal: any[]): Promise<void> {
         appendToWAL(dir, { stepId, intent: "SYNTHESIS", status: "COMPLETED", subIndex: null, data: { length: fullReportContent.length } });
     } catch (err: any) {
         appendToWAL(dir, { stepId, intent: "SYNTHESIS", status: "FAILED", subIndex: null, data: { error: err.message } });
-        throw err;
+        throw new Error(`Failed during Phase 3: ${err.message}`);
     }
 }
 

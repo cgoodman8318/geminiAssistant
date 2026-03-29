@@ -6,7 +6,11 @@ import { hideBin } from 'yargs/helpers';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 
-dotenv.config();
+// Path to the secure root-level secrets file
+const SECRETS_PATH = path.resolve(process.cwd(), '../../../../.secrets/researcher.env');
+const OUTPUT_ROOT = path.resolve(process.cwd(), '../../../../research_outputs');
+
+dotenv.config({ path: SECRETS_PATH });
 
 /**
  * SYSTEM SPECIFICATION: CASS-Compatible Autonomous Research Agent
@@ -18,7 +22,7 @@ dotenv.config();
 // --- Configuration & Constants ---
 const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) {
-    console.error('Error: GEMINI_API_KEY environment variable is required.');
+    console.error(`Error: GEMINI_API_KEY environment variable is required at ${SECRETS_PATH}`);
     process.exit(1);
 }
 
@@ -306,7 +310,8 @@ async function main() {
     } else if (argv.query) {
         currentQuery = argv.query;
         const id = ulid();
-        researchDir = path.join(process.cwd(), `research_${id}`);
+        researchDir = path.join(OUTPUT_ROOT, `research_${id}`);
+        if (!fs.existsSync(OUTPUT_ROOT)) fs.mkdirSync(OUTPUT_ROOT, { recursive: true });
         fs.mkdirSync(researchDir);
         console.log(`[System] Starting new research. Directory: ${researchDir}`);
         

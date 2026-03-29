@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-03-29T11:50:52.651Z",
+  "timestamp": "2026-03-29T12:12:51.845Z",
   "results": [
     {
-      "id": "01KMWPWSWFXY80VTWQWX6HGRBJ",
+      "id": "01KMWR5PZDEEM71GQ7GQ6VZQB0",
       "type": "skill",
       "name": "autonomous-researcher",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\autonomous-researcher",
@@ -17,7 +17,7 @@
       }
     },
     {
-      "id": "01KMWPWSWGHA9JPZ1T4Q3X6HH3",
+      "id": "01KMWR5PZETF1Q5B56J0E66A8G",
       "type": "skill",
       "name": "coding-step-planner",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\coding-step-planner",
@@ -32,7 +32,7 @@
       }
     },
     {
-      "id": "01KMWPWSWHJT1G6WHWCRQ769G2",
+      "id": "01KMWR5PZFGP2M1H2VY8D45CBP",
       "type": "skill",
       "name": "interactive-web-explorer",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\interactive-web-explorer",
@@ -47,7 +47,7 @@
       }
     },
     {
-      "id": "01KMWPWSWHX5TW0TAW3E5C20BE",
+      "id": "01KMWR5PZFD6YK8H1S8PHAHXYP",
       "type": "skill",
       "name": "jw-assistant-toolkit",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\jw-assistant-toolkit",
@@ -62,7 +62,7 @@
       }
     },
     {
-      "id": "01KMWPWSWHBTRQPEEHN3Y9PTFG",
+      "id": "01KMWR5PZF4HY73TBBGCZ2AKV1",
       "type": "skill",
       "name": "skill-auditor",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\skills\\skill-auditor",
@@ -77,7 +77,7 @@
       }
     },
     {
-      "id": "01KMWPWSWJWHS99HT6J3RHFEA4",
+      "id": "01KMWR5PZGTDXWYXY02163EACK",
       "type": "tool",
       "name": "autonomous-researcher",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\autonomous-researcher",
@@ -94,62 +94,12 @@
         ]
       },
       "security": {
-        "score": 0,
-        "violations": [
-          {
-            "severity": "CRITICAL",
-            "rule": "SEC_HARDCODED_KEY",
-            "message": "Potential hardcoded Google API Key detected.",
-            "file": "src\\tools\\autonomous-researcher\\.env",
-            "line": 1
-          },
-          {
-            "severity": "HIGH",
-            "rule": "SEC_YOLO_FLAG",
-            "message": "Usage of prohibited YOLO mode detected.",
-            "file": "src\\tools\\autonomous-researcher\\research_01KMWKYVYV55HDF3BBPEBNH6QA\\report.md",
-            "line": 6
-          },
-          {
-            "severity": "HIGH",
-            "rule": "SEC_YOLO_FLAG",
-            "message": "Usage of prohibited YOLO mode detected.",
-            "file": "src\\tools\\autonomous-researcher\\research_01KMWKYVYV55HDF3BBPEBNH6QA\\report_log.md",
-            "line": 7
-          },
-          {
-            "severity": "HIGH",
-            "rule": "SEC_YOLO_FLAG",
-            "message": "Usage of prohibited YOLO mode detected.",
-            "file": "src\\tools\\autonomous-researcher\\research_01KMWKYVYV55HDF3BBPEBNH6QA\\report_status.jsonl",
-            "line": 3
-          },
-          {
-            "severity": "HIGH",
-            "rule": "SEC_YOLO_FLAG",
-            "message": "Usage of prohibited YOLO mode detected.",
-            "file": "src\\tools\\autonomous-researcher\\research_01KMWPM31MKK44N9SA12AD3MPE\\report.md",
-            "line": 159
-          },
-          {
-            "severity": "HIGH",
-            "rule": "SEC_YOLO_FLAG",
-            "message": "Usage of prohibited YOLO mode detected.",
-            "file": "src\\tools\\autonomous-researcher\\research_01KMWPM31MKK44N9SA12AD3MPE\\report_log.md",
-            "line": 27
-          },
-          {
-            "severity": "HIGH",
-            "rule": "SEC_YOLO_FLAG",
-            "message": "Usage of prohibited YOLO mode detected.",
-            "file": "src\\tools\\autonomous-researcher\\research_01KMWPM31MKK44N9SA12AD3MPE\\report_status.jsonl",
-            "line": 11
-          }
-        ]
+        "score": 100,
+        "violations": []
       }
     },
     {
-      "id": "01KMWPWSWJYD0TFR36Y1QVRZXD",
+      "id": "01KMWR5PZGN1WDSCP8M9XMY51R",
       "type": "utility",
       "name": "browser_engine.ts",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\browser_engine.ts",
@@ -163,7 +113,7 @@
       }
     },
     {
-      "id": "01KMWPWSWKYDQCVH2BTA7917JF",
+      "id": "01KMWR5PZHHMYG88XCFF9G0PWW",
       "type": "utility",
       "name": "interactive_wol_research.ts",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\interactive_wol_research.ts",
@@ -177,7 +127,7 @@
       }
     },
     {
-      "id": "01KMWPWSWK3HTWMQCC4YG1VGX3",
+      "id": "01KMWR5PZHTPKT9BF93CYBQNYM",
       "type": "utility",
       "name": "jw_daily_orchestrator.ts",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\jw_daily_orchestrator.ts",
@@ -186,20 +136,12 @@
         "hasYolo": false
       },
       "security": {
-        "score": 80,
-        "violations": [
-          {
-            "severity": "MEDIUM",
-            "rule": "SEC_UNSAFE_EXEC",
-            "message": "Synchronous shell execution detected. Prefer async or Plan Mode compliant tools.",
-            "file": "src\\tools\\jw_daily_orchestrator.ts",
-            "line": 69
-          }
-        ]
+        "score": 100,
+        "violations": []
       }
     },
     {
-      "id": "01KMWPWSWKMKZK8TNAEYFSX2MP",
+      "id": "01KMWR5PZHDS9P5EPNM66H5CHY",
       "type": "utility",
       "name": "jw_scraper_daily_text_tool.ts",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\jw_scraper_daily_text_tool.ts",
@@ -213,7 +155,7 @@
       }
     },
     {
-      "id": "01KMWPWSWK0WP32WYXHNGTT62H",
+      "id": "01KMWR5PZHCG9S7FC7MN8T2F34",
       "type": "utility",
       "name": "kokoro_tool.ts",
       "path": "C:\\Users\\cgood\\project_julia\\Tooling\\geminiAssistant\\src\\tools\\kokoro_tool.ts",

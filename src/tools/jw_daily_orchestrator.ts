@@ -1,5 +1,5 @@
 #!/usr/bin/env node --import tsx
-import { execSync } from 'child_process';
+import { spawn } from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
@@ -51,6 +51,36 @@ const PROMPT_DAILY_TEXT_TEMPLATE = `
 3. **Closing:** [Father] summarizes and says goodbye as they start their day.
 `;
 
+/**
+ * Executes a shell command asynchronously using spawn with timeout support.
+ */
+function executeCommandAsync(command: string, args: string[], timeoutMs: number = 300000): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const child = spawn(command, args, { shell: true });
+        let stdout = '';
+        let stderr = '';
+
+        const timeout = setTimeout(() => {
+            child.kill();
+            reject(new Error(`Command timed out after ${timeoutMs}ms: ${command} ${args.join(' ')}`));
+        }, timeoutMs);
+
+        child.stdout.on('data', (data) => { stdout += data.toString(); });
+        child.stderr.on('data', (data) => { stderr += data.toString(); });
+
+        child.on('close', (code) => {
+            clearTimeout(timeout);
+            if (code === 0) resolve(stdout);
+            else reject(new Error(`Command failed with code ${code}: ${stderr}`));
+        });
+
+        child.on('error', (err) => {
+            clearTimeout(timeout);
+            reject(err);
+        });
+    });
+}
+
 async function main() {
     const argv: any = yargs(hideBin(process.argv))
         .option('date', { type: 'string', description: 'Date in YYYY/MM/DD format' })
@@ -66,7 +96,7 @@ async function main() {
 
     // 1. Scrape Data
     console.log('Step 1: Scraping JW.org...');
-    const scraperOutput = execSync(`jw-scraper-daily daily --date ${dateStr}`, { encoding: 'utf-8' });
+    const scraperOutput = await executeCommandAsync('jw-scraper-daily', ['daily', '--date', dateStr]);
     const dailyData = JSON.parse(scraperOutput);
 
     // 2. Prepare Prompt
@@ -83,7 +113,8 @@ async function main() {
     const promptPath = path.join(os.tmpdir(), `temp_prompt_${Date.now()}.txt`);
     fs.writeFileSync(promptPath, fullPrompt);
     
-    const geminiOutput = execSync(`type "${promptPath}" | gemini -p "Please generate the script based on the provided data." --raw-output`, { encoding: 'utf-8' });
+    // In Windows, we use type to pipe the file
+    const geminiOutput = await executeCommandAsync(`type "${promptPath}" | gemini`, ['-p', '"Please generate the script based on the provided data."', '--raw-output']);
     
     fs.removeSync(promptPath);
 
@@ -105,9 +136,7 @@ async function main() {
     const voicesPath = path.join(os.tmpdir(), `temp_voices_${Date.now()}.json`);
     fs.writeFileSync(voicesPath, voicesJson);
     
-    execSync(`kokoro-tts generate --file "${scriptPath}" --voices_file "${voicesPath}" --output "${outputFilename}"`, { 
-        encoding: 'utf-8' 
-    });
+    await executeCommandAsync('kokoro-tts', ['generate', '--file', `"${scriptPath}"`, '--voices_file', `"${voicesPath}"`, '--output', `"${outputFilename}"`]);
 
     fs.removeSync(scriptPath);
     fs.removeSync(voicesPath);
@@ -117,4 +146,5 @@ async function main() {
 
 main().catch(err => {
     console.error('Orchestration failed:', err);
+    process.exit(1);
 });

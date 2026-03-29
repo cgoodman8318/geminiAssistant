@@ -11,3 +11,6 @@ node_modules/
 # Secrets
 .env
 *.env
+.secrets/
+research_outputs/
+audit_cache/

@@ -25,6 +25,6 @@
     "jw-daily-orchestrator": "./src/tools/jw_daily_orchestrator.ts",
     "wol-research": "./src/tools/interactive_wol_research.ts",
     "browser-engine": "./src/tools/browser_engine.ts",
-    "autonomous-researcher": "./src/tools/research-tool/index.js"
+    "autonomous-researcher": "./src/tools/autonomous-researcher/index.ts"
   }
 }

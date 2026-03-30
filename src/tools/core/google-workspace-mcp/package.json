@@ -1,0 +1,19 @@
+{
+  "name": "google-workspace-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol Server for Google Workspace CLI (gws) Integration",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  }
+}

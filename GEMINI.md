@@ -25,4 +25,5 @@ For specific system details, reference the `docs/` directory:
 - **`docs/TeamRoster.md`**: Catalog of Core and Personal tools/skills.
 - **`docs/DiagnosticSuite.md`**: Deterministic debugging hooks and protocols.
 - **`docs/HomeAssistant.md`**: Local MCP integration details.
+- **`docs/GoogleWorkspace.md`**: Gmail, Tasks, Calendar, and Drive MCP integration.
 - **`docs/JWToolkit.md`**: Religious research constraints.

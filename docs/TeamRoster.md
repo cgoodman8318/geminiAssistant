@@ -14,6 +14,7 @@ General-purpose power tools designed for any high-reasoning task. Master copies 
 | **Security Officer** | `skill-auditor` | Automated security and integrity scanner. |
 | **Web Explorer** | `interactive-web-explorer` | Playwright-based interactive browsing. |
 | **Home Manager** | `home-assistant` | Controls the local smart home via MCP. |
+| **Workspace Manager** | `google-workspace-mcp` | Full CRUD for Gmail, Tasks, Calendar, and Drive via MCP. |
 
 ## 2. Personal Track (Religious/Custom)
 Specialized tools built on Core foundations for specific workflows. Master copies reside in `src/skills/personal/` and `src/tools/personal/`.

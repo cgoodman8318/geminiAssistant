@@ -26,4 +26,5 @@ For specific system details, reference the `docs/` directory:
 - **`docs/DiagnosticSuite.md`**: Deterministic debugging hooks and protocols.
 - **`docs/HomeAssistant.md`**: Local MCP integration details.
 - **`docs/GoogleWorkspace.md`**: Gmail, Tasks, Calendar, and Drive MCP integration.
+- **`docs/GoogleMaps.md`**: Google Geocoding API integration (MCP & CLI).
 - **`docs/JWToolkit.md`**: Religious research constraints.

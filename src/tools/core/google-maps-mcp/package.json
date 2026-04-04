@@ -1,0 +1,11 @@
+{
+  "name": "google-maps-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol Server for Google Maps Geocoding",
+  "main": "index.ts",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1",
+    "dotenv": "^16.4.5"
+  }
+}
